@@ -1,0 +1,6 @@
+{
+  "name": "Zabando",
+  "description": "An interactive, AI-powered language learning platform for English and Persian, featuring CEFR-graded exercises, gamified leagues, and personalized skill paths.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

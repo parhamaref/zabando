@@ -1,0 +1,63 @@
+[
+  {
+    "id": "notif_xp_milestone",
+    "trigger": "xp.updated",
+    "condition": {
+      "dailyXp_gte": 50
+    },
+    "action": "sendNotification",
+    "params": {
+      "type": "xp",
+      "title": "آفرین! امروز خیلی خوب بودی! ⚡",
+      "message": "تو امروز بیش از ۵۰ XP گرفتی و رکورد جدیدی ثبت کردی! 👏"
+    }
+  },
+  {
+    "id": "notif_streak_milestone",
+    "trigger": "streak.updated",
+    "condition": {
+      "streak_gte": 7
+    },
+    "action": "sendNotification",
+    "params": {
+      "type": "streak",
+      "title": "یک هفته مداومت! 🔥",
+      "message": "تبریک! تو ۷ روز متوالی به هدفت رسیدی. همین‌طور ادامه بده!"
+    }
+  },
+  {
+    "id": "notif_streak_broken",
+    "trigger": "streak.broken",
+    "condition": {},
+    "action": "sendNotification",
+    "params": {
+      "type": "streak",
+      "title": "اوه نه! Streakت شکست 😢",
+      "message": "فردا دوباره شروع کن، ما مطمئنیم که تو می‌توانی دوباره به اوج برسی!"
+    }
+  },
+  {
+    "id": "notif_badge_master",
+    "trigger": "badge.awarded",
+    "condition": {},
+    "action": "sendNotification",
+    "params": {
+      "type": "badge",
+      "title": "مدال جدید کسب کردی! 🏅",
+      "message": "شما با موفقیت نشان افتخار جدیدی را در پروفایل خود آزاد کردید!"
+    }
+  },
+  {
+    "id": "notif_league_promotion",
+    "trigger": "league.ranked",
+    "condition": {
+      "rank": 1
+    },
+    "action": "sendNotification",
+    "params": {
+      "type": "league",
+      "title": "صدرنشین جدول شدی! 🏆",
+      "message": "تو در رتبه ۱ لیگ خودت قرار گرفتی! این جایگاه قهرمانانه را حفظ کن."
+    }
+  }
+]

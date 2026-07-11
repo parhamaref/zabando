@@ -1,0 +1,9 @@
+{
+  "name": "@zabando/ui",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}

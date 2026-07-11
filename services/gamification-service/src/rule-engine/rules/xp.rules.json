@@ -1,0 +1,37 @@
+[
+  {
+    "id": "xp_correct_answer",
+    "trigger": "exercise.completed",
+    "condition": {
+      "isCorrect": true
+    },
+    "action": "addXp",
+    "params": {
+      "xp": 10
+    }
+  },
+  {
+    "id": "xp_difficulty_bonus",
+    "trigger": "exercise.completed",
+    "condition": {
+      "difficulty_gte": 4,
+      "isCorrect": true
+    },
+    "action": "addXp",
+    "params": {
+      "xp": 8
+    }
+  },
+  {
+    "id": "award_hard_badge",
+    "trigger": "exercise.completed",
+    "condition": {
+      "difficulty_gte": 5,
+      "isCorrect": true
+    },
+    "action": "awardBadge",
+    "params": {
+      "badge": "HARD_MASTER"
+    }
+  }
+]

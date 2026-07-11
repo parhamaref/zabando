@@ -1,0 +1,243 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// SECTION 1: User & Profile Models
+// ==========================================
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  password_hash String
+  display_name  String?
+  locale        String        @default("fa-IR")
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+
+  profile       UserProfile?
+  stats         UserStats?
+  badges        UserBadge[]
+  skillProgress UserSkillProgress[]
+  lessonProgress UserLessonProgress[]
+  exerciseResults UserExerciseResult[]
+  leagueMembers LeagueMember[]
+  userSkillMLStates UserSkillMLState[]
+}
+
+model UserProfile {
+  user_id        String   @id
+  native_language String   @default("fa")
+  target_language String   @default("en")
+  cefr_level      String   @default("A1")
+  avatar_url      String?
+  bio             String?
+  updated_at      DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// SECTION 2: Course / Skill / Lesson / Exercise Models
+// ==========================================
+
+model Course {
+  id              String   @id @default(uuid())
+  name            String
+  source_language String
+  target_language String
+  cefr_min        String   @default("A1")
+  cefr_max        String   @default("C2")
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+
+  skills Skill[]
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  course_id   String
+  name        String
+  description String?
+  order_index Int
+  cefr_level  String
+  created_at  DateTime @default(now())
+
+  course Course @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+  userProgress UserSkillProgress[]
+  mlStates UserSkillMLState[]
+}
+
+model Lesson {
+  id                    String   @id @default(uuid())
+  skill_id              String
+  title                 String
+  order_index           Int
+  estimated_duration_min Int     @default(5)
+  created_at            DateTime @default(now())
+
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+  exercises Exercise[]
+  userProgress UserLessonProgress[]
+}
+
+model Exercise {
+  id               String   @id @default(uuid())
+  lesson_id        String
+  type             String
+  question_text    String
+  question_audio_url String?
+  answer_text      String
+  difficulty       Int
+  skill_tag        String
+  cefr_level       String
+  created_at       DateTime @default(now())
+
+  lesson Lesson @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+  options ExerciseOption[]
+  results UserExerciseResult[]
+  ml ExerciseMLMetadata?
+  logs ContentGenerationLogs[]
+}
+
+model ExerciseOption {
+  id          String   @id @default(uuid())
+  exercise_id String
+  option_text String
+  is_correct  Boolean  @default(false)
+
+  exercise Exercise @relation(fields: [exercise_id], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// SECTION 3: User Progress Models
+// ==========================================
+
+model UserSkillProgress {
+  id                     String   @id @default(uuid())
+  user_id                String
+  skill_id               String
+  completed_lessons_count Int      @default(0)
+  mastery_level          Int       @default(0)
+  last_practiced_at      DateTime?
+  updated_at             DateTime  @updatedAt
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, skill_id])
+}
+
+model UserLessonProgress {
+  id              String   @id @default(uuid())
+  user_id         String
+  lesson_id       String
+  status          String   @default("not_started")
+  attempts_count  Int      @default(0)
+  last_attempt_at DateTime?
+  updated_at      DateTime @updatedAt
+
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, lesson_id])
+}
+
+model UserExerciseResult {
+  id              String   @id @default(uuid())
+  user_id         String
+  exercise_id     String
+  is_correct      Boolean
+  response_time_ms Int?
+  answered_at     DateTime @default(now())
+
+  user     User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exercise_id], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// SECTION 4: Gamification Models
+// ==========================================
+
+model UserStats {
+  user_id             String   @id
+  xp_total            Int      @default(0)
+  current_streak_days Int      @default(0)
+  longest_streak_days Int      @default(0)
+  level               Int      @default(1)
+  last_active_date    DateTime?
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  user_id    String
+  badge_code String
+  earned_at  DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model League {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  members LeagueMember[]
+}
+
+model LeagueMember {
+  id        String   @id @default(uuid())
+  league_id String
+  user_id   String
+  weekly_xp Int      @default(0)
+  rank      Int?
+
+  league League @relation(fields: [league_id], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([league_id, user_id])
+}
+
+// ==========================================
+// SECTION 5: ML Metadata & AI Log Models
+// ==========================================
+
+model ExerciseMLMetadata {
+  exercise_id     String   @id
+  difficulty_score Float?
+  model_version    String?
+  last_updated_at  DateTime @default(now())
+
+  exercise Exercise @relation(fields: [exercise_id], references: [id], onDelete: Cascade)
+}
+
+model UserSkillMLState {
+  id              String   @id @default(uuid())
+  user_id         String
+  skill_id        String
+  ability_estimate Float?
+  last_updated_at DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, skill_id])
+}
+
+model ContentGenerationLogs {
+  id           String   @id @default(uuid())
+  exercise_id  String?
+  model_name   String?
+  prompt_hash  String?
+  generated_at DateTime @default(now())
+
+  exercise Exercise? @relation(fields: [exercise_id], references: [id], onDelete: SetNull)
+}
